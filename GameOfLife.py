@@ -6,14 +6,14 @@ from pygame.locals import *
 #Mas de maneira séria, é basicamente toda célula do jogo.
 class Life(pygame.sprite.Sprite):
 
-        def __init__(self, x, y, numera):
+        def __init__(self, cpx, cpy, num):
             pygame.sprite.Sprite.__init__(self)
-            self.vivo = 0
-            self.numera = numera
-            self.image = pygame.Surface((18,12))
+            self.nb = 0
+            self.num = num
+            self.image = pygame.Surface((13,13))
             self.image.fill((50, 50, 50))
             self.alive = False
-            self.rect = self.image.get_rect(center=(x,y))
+            self.rect = self.image.get_rect(topleft=(cpx,cpy))
 
         #Atualizar se está vivo ou morto
         def update(self):
@@ -28,39 +28,49 @@ class Life(pygame.sprite.Sprite):
 
         #Feito para loop de verificação
         def check(self, sprites):
-            num = self.numera
-            vivos = 0
-            
-            for linha in range(-1,2):
-                if num[0]+linha not in range(40):
-                    continue       
+            num = self.num
+            nb = 0
+
+            for line in range(-1,2):
+                c_line = 0
+                if num[0]+line == -1:
+                    c_line = 39
+                elif num[0]+line == 40:
+                    c_line = 0
+                else:
+                    c_line = num[0]+line      
                 for cell in range(-1,2):
-                    if num[1]+cell not in range(40):
+                    c_cell = 0
+                    if num[1]+cell == -1:
+                        c_cell = 59
+                    elif num[1]+cell == 60:
+                        c_cell = 0
+                    elif line == 0 and cell == 0:
                         continue
-                    if linha == 0 and cell == 0:
-                        continue
-                    ver = sprites[num[0]+linha].sprites()[num[1]+cell].alive
+                    else:
+                        c_cell = num[1]+cell
+                    ver = sprites[c_line].sprites()[c_cell].alive
                     if ver == True:
-                        vivos += 1
-            self.vivo = vivos                            
+                        nb += 1
+            self.nb = nb                            
         def commit(self):
-            vivos = self.vivo
-            if vivos == 3 and self.alive == False:
+            nb = self.nb
+            if nb == 3 and self.alive == False:
                     self.alive = True
                     self.image.fill((180,180,180))
-            elif vivos <= 1 and self.alive == True:
+            elif nb <= 1 and self.alive == True:
                 self.alive = False
                 self.image.fill((50, 50, 50))
-            elif vivos <= 3 and self.alive == True:
+            elif nb <= 3 and self.alive == True:
                 pass
-            elif vivos > 3 and self.alive == True:
+            elif nb > 3 and self.alive == True:
                 self.alive = False
                 self.image.fill((50, 50, 50))    
 #O jogo em si
 def main():
     # Fazendo a Tela e inicializando o Relógio
     pygame.init()
-    screen = pygame.display.set_mode((800,600))
+    screen = pygame.display.set_mode((900,600))
     pygame.display.set_caption('O jogo da vida')
     clock = pygame.time.Clock()
 
@@ -68,39 +78,39 @@ def main():
     background = pygame.Surface(screen.get_size())
     background = background.convert()
     background.fill((50, 50, 50))
-    width = 20
+    width = 15
     height = 15
-    while width <= 800:
+    while width <= 900:
         pygame.draw.lines(background,(180,180,180),True,((width,0), (width,600)))
-        width += 20
+        width += 15
     while height <= 600:
-        pygame.draw.lines(background,(180,180,180),True,((0,height), (800,height)))
+        pygame.draw.lines(background,(180,180,180),True,((0,height), (900,height)))
         height += 15
 
 
     #Inserindo cada célula no seu devido local
     #Posição Inicial
-    positionx = 10
-    positiony = 8.5
+    px = 1
+    py = 1
 
     #Cada linha é agrupada por um grupo de Sprites
-    line = pygame.sprite.Group()
+    sline = pygame.sprite.Group()
 
     #A lista onde cada linha vai ficar
     allsprites = []
 
     #Populando a lista
-    for linha in range(40):
-        for unid in range(40):
-            life = Life(positionx,positiony,[linha,unid])
-            line.add(life)
-            if positionx <= 800:
-                positionx += 20
+    for line in range(40):
+        for unid in range(60):
+            life = Life(px,py,[line,unid])
+            sline.add(life)
+            if px <= 900:
+                px += 15
         else:
-            allsprites.append(line)
-            line = pygame.sprite.Group()
-        positionx = 10
-        positiony += 15  
+            allsprites.append(sline)
+            sline = pygame.sprite.Group()
+        px = 1
+        py += 15  
         
 
     # Renderizando tudo
@@ -123,14 +133,14 @@ def main():
                 if activeSim == False:
                     #Após pegar a posição do mouse...
                     pos = pygame.mouse.get_pos()
-                    x , y = pos
+                    apx , apy = pos
                     #É feito um cálculo dos incrementos, na qual é utilizado no indice
-                    x = x // 20
-                    y = y // 15
+                    apx = apx // 15
+                    apy = apy // 15
                 #Pegando a célula da lista, e mandando ela atualizar
-                allsprites[y].sprites()[x].update()
+                allsprites[apy].sprites()[apx].update()
                 #Fazendo o jogo renderizar aquele quadrado
-                pygame.sprite.RenderPlain(allsprites[y])
+                pygame.sprite.RenderPlain(allsprites[apy])
             
             #Lendo o input do teclado    
             elif event.type == pygame.KEYDOWN:
@@ -153,12 +163,12 @@ def main():
         #A simulação do jogo            
         if activeSim:                        
             clock.tick(tick)
-            for linha in allsprites:
-                for cell in linha:
+            for line in allsprites:
+                for cell in line:
                     cell.check(allsprites)
                         
-            for linha in allsprites:
-                for cell in linha:
+            for line in allsprites:
+                for cell in line:
                     cell.commit()
             for line in allsprites:    
                 pygame.sprite.RenderPlain((line)).draw(background)
