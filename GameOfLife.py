@@ -6,7 +6,7 @@ from pygame.locals import QUIT
 # Mas de maneira séria, é basicamente toda célula do jogo.
 
 SCREEN_WIDTH = 1200
-SCREEN_HEIGHT = 600
+SCREEN_HEIGHT = 660
 PLAY_SCREEN_WIDTH = SCREEN_WIDTH - 300
 SQUARE_SIZE = 13
 BOX_SIZE = SQUARE_SIZE+2
