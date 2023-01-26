@@ -13,6 +13,7 @@ BOX_SIZE = SQUARE_SIZE+2
 AMOUNT_OF_CELLS = PLAY_SCREEN_WIDTH // BOX_SIZE
 AMOUNT_OF_LINES = SCREEN_HEIGHT // BOX_SIZE
 BACKGROUND_COLOR = (50, 50, 50)
+ALIVE_COLOR = (180, 180, 180)
 
 ACTIVE_BOX_COLOR = (0, 250, 0)
 INACTIVE_BOX_COLOR = (250, 0, 0)
@@ -51,15 +52,21 @@ class Life(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(topleft=(cpx, cpy))
 
         # Atualizar se está vivo ou morto
-    def revive(self):
+    def click(self):
         if self.alive is False:
-            self.image.fill((180, 180, 180))
-            self.alive = True
+            self.setAlive()
 
         elif self.alive is True:
-            self.image.fill((50, 50, 50))
-            self.alive = False
+            self.setDead()
     # Feito para loop de verificação
+
+    def setAlive(self):
+        self.image.fill(ALIVE_COLOR)
+        self.alive = True
+
+    def setDead(self):
+        self.image.fill(BACKGROUND_COLOR)
+        self.alive = False
 
     def check(self, sprites):
         num = self.num
@@ -196,11 +203,31 @@ def main():
                     apx = apx // BOX_SIZE
                     apy = apy // BOX_SIZE
                 # Pegando a célula da lista, e mandando ela atualizar
-                indexBox[apy].sprites()[apx].revive()
+                indexBox[apy].sprites()[apx].click()
 
             # Lendo o input do teclado
             elif event.type == pygame.KEYDOWN:
                 # Lendo o Espaço para começar e parar o jogo
+                if event.key == pygame.K_s:
+                    save_info = []
+                    for line in indexBox:
+                        for cell in line:
+                            if cell.alive:
+                                save_info.append(cell.num)
+                    file = open('GameSave.txt', 'w')
+                    for posi in save_info:
+                        file.write(str(posi)+'\n')
+                    file.close()
+
+                if event.key == pygame.K_l:
+                    for line in indexBox:
+                        for cell in line:
+                            cell.setDead()
+                    file = open("GameSave.txt", 'r')
+                    for position in file:
+                        indexBox[int(position[1:3])].sprites()[int(position[5:7])].setAlive()
+                    file.close()
+
                 if event.key == pygame.K_SPACE:
                     if activeSim is False:
                         activeSim = True
